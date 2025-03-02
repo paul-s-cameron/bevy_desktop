@@ -102,15 +102,11 @@ fn apply_transparency(
     winit_windows: NonSend<WinitWindows>,
 ) {
     if let Ok(entity) = window_query.get_single_mut() {
-        println!("Found Primary Window");
         if let Some(window_wrapper) = winit_windows.get_window(entity) {
-            println!("WindowWrapper");
             #[allow(deprecated)]
             if let Ok(window_handle) = window_wrapper.raw_window_handle() {
-                println!("RawWindowHandle");
                 match window_handle {
                     RawWindowHandle::Win32(w) => {
-                        println!("Win32");
                         let hwnd = HWND(w.hwnd.get() as *mut _);
         
                         unsafe {
