@@ -1,10 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::prelude::*;
-use {{crate_name}}::AppPlugin;
 
 fn main() {
-    App::new()
-        .add_plugins(AppPlugin)
-        .run();
+    {{crate_name}}::app().run();
 }

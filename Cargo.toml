@@ -3,6 +3,10 @@ name = "bevy_template"
 version = "0.1.0"
 edition = "2021"
 
+[lints.rust]
+unsafe_code = "allow"
+unused = { level = "allow", priority = -1 }
+
 [dependencies]
 bevy = "0.15.3"
 bevy_asset_loader = "0.22.0"

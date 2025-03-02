@@ -1,5 +1,3 @@
-// #![allow(unused)]
-
 mod assets;
 mod utils;
 
@@ -13,71 +11,69 @@ use bevy::{
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use windows::Win32::{Foundation::{COLORREF, HWND}, Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_TRANSITIONS_FORCEDISABLED, DWMWA_USE_IMMERSIVE_DARK_MODE}, UI::WindowsAndMessaging::{GetWindowLongW, SetLayeredWindowAttributes, SetWindowLongW, GWL_EXSTYLE, LWA_ALPHA, WS_EX_LAYERED}};
 
-pub struct AppPlugin;
+pub fn app() -> App {
+    let mut app = App::new();
+    app.insert_resource(ClearColor(Color::NONE));
 
-impl Plugin for AppPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(ClearColor(Color::NONE));
+    // Order new `AppStep` variants by adding them here:
+    app.configure_sets(
+        Update,
+        (AppSet::TickTimers, AppSet::RecordInput, AppSet::Update).chain(),
+    );
 
-        // Order new `AppStep` variants by adding them here:
-        app.configure_sets(
-            Update,
-            (AppSet::TickTimers, AppSet::RecordInput, AppSet::Update).chain(),
-        );
+    // Spawn the main camera.
+    app.add_systems(Startup, spawn_camera);
+    app.add_systems(Startup, apply_transparency);
 
-        // Spawn the main camera.
-        app.add_systems(Startup, spawn_camera);
-        app.add_systems(Startup, apply_transparency);
+    // Add Bevy plugins.
+    app.add_plugins(
+        DefaultPlugins
+            .set(AssetPlugin {
+                // Wasm builds will check for meta files (that don't exist) if this isn't set.
+                // This causes errors and even panics on web build on itch.
+                // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
+                meta_check: bevy::asset::AssetMetaCheck::Never,
+                ..default()
+            })
+            .set(WindowPlugin {
+                primary_window: Some(
+                    Window {
+                        transparent: true,
+                        decorations: false,
+                        present_mode: bevy::window::PresentMode::AutoVsync,
+                        window_level: WindowLevel::AlwaysOnBottom,
+                        mode: bevy::window::WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+                        // #[cfg(target_os = "windows")]
+                        // composite_alpha_mode: CompositeAlphaMode::PostMultiplied,
+                        #[cfg(target_os = "macos")]
+                        composite_alpha_mode: CompositeAlphaMode::PostMultiplied,
+                        #[cfg(target_os = "linux")]
+                        composite_alpha_mode: CompositeAlphaMode::PreMultiplied,
+                        // cursor_options: CursorOptions {
+                        //     hit_test: false,
+                        //     ..default()
+                        // },
+                        ..default()
+                    }
+                ),
+                ..default()
+            })
+            .set(AudioPlugin {
+                global_volume: GlobalVolume {
+                    volume: Volume::new(0.3),
+                },
+                ..default()
+            }),
+    );
 
-        // Add Bevy plugins.
-        app.add_plugins(
-            DefaultPlugins
-                .set(AssetPlugin {
-                    // Wasm builds will check for meta files (that don't exist) if this isn't set.
-                    // This causes errors and even panics on web build on itch.
-                    // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
-                    meta_check: bevy::asset::AssetMetaCheck::Never,
-                    ..default()
-                })
-                .set(WindowPlugin {
-                    primary_window: Some(
-                        Window {
-                            transparent: true,
-                            decorations: false,
-                            present_mode: bevy::window::PresentMode::AutoVsync,
-                            window_level: WindowLevel::AlwaysOnBottom,
-                            mode: bevy::window::WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
-                            // #[cfg(target_os = "windows")]
-                            // composite_alpha_mode: CompositeAlphaMode::PostMultiplied,
-                            #[cfg(target_os = "macos")]
-                            composite_alpha_mode: CompositeAlphaMode::PostMultiplied,
-                            #[cfg(target_os = "linux")]
-                            composite_alpha_mode: CompositeAlphaMode::PreMultiplied,
-                            // cursor_options: CursorOptions {
-                            //     hit_test: false,
-                            //     ..default()
-                            // },
-                            ..default()
-                        }
-                    ),
-                    ..default()
-                })
-                .set(AudioPlugin {
-                    global_volume: GlobalVolume {
-                        volume: Volume::new(0.3),
-                    },
-                    ..default()
-                }),
-        );
+    // Add other plugins.
+    app.add_plugins((
+    ));
 
-        // Add other plugins.
-        app.add_plugins((
-        ));
-
-        // Enable dev tools for dev builds.
-        #[cfg(feature = "dev")]
-        app.add_plugins(dev::plugin);
-    }
+    // Enable dev tools for dev builds.
+    #[cfg(feature = "dev")]
+    app.add_plugins(dev::plugin);
+    app
 }
 
 /// High-level groupings of systems for the app in the `Update` schedule.
