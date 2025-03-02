@@ -1,0 +1,4 @@
+{
+    "rust-analyzer.cargo.extraArgs": ["--profile", "rust-analyzer"],
+    "editor.suggest.showClasses": false,
+}

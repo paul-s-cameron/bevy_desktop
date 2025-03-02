@@ -1,0 +1,42 @@
+[package]
+name = "bevy_template"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.15.3"
+bevy_asset_loader = "0.22.0"
+bevy_console = "0.13.1"
+clap = "4.5.31"
+raw-window-handle = "0.6.2"
+
+[dependencies.windows]
+version = "0.60.0"
+features = ["Win32_UI_WindowsAndMessaging", "Win32_Graphics_Dwm"]
+
+[build-dependencies]
+embed-resource = "3.0.1"
+
+[profile.dev]
+debug = 0
+strip = "debuginfo"
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = 3
+panic = 'abort'
+debug = 0
+strip = "debuginfo"
+
+[profile.distribution]
+inherits = "release"
+strip = true
+lto = "thin"
+codegen-units = 1
+
+[features]
+dev = ["bevy/dynamic_linking"]
+default = []
